@@ -1,5 +1,5 @@
 
-[![Version](https://img.shields.io/badge/pod-1.0.2-blue.svg)](http://cocoadocs.org/docsets/SwiftForms)
+[![Version](https://img.shields.io/badge/pod-1.7-red.svg)](http://cocoadocs.org/docsets/SwiftForms)
 [![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
 
 [![License](https://img.shields.io/badge/license-MIT-gray.svg)](http://cocoadocs.org/docsets/SwiftForms)
@@ -30,17 +30,17 @@ form.title = "Example form"
 // Define first section
 var section1 = FormSectionDescriptor()
 
-var row: FormRowDescriptor! = FormRowDescriptor(tag: "name", rowType: .Email, title: "Email")
-section1.addRow(row)
+var row = FormRowDescriptor(tag: "name", rowType: .Email, title: "Email")
+section1.rows.append(row)
 
 row = FormRowDescriptor(tag: "pass", rowType: .Password, title: "Password")
-section1.addRow(row)
+section1.rows.append(row)
 
 // Define second section
 var section2 = FormSectionDescriptor()
 
 row = FormRowDescriptor(tag: "button", rowType: .Button, title: "Submit")
-section2.addRow(row)
+section2.rows.append(row)
 
 form.sections = [section1, section2]
 
@@ -51,12 +51,12 @@ To see a more complex form definition you can take a look to the example applica
 Cell appearance
 ----------------------
 
-Every row descriptor has a `configuration` dictionary that allows to customize cell's appearance and behavior. In order to change concrete visual aspects of a row simply set `FormRowDescriptor.Configuration.CellConfiguration` value to a dictionary containing custom key-value coding properties.
+Every row descriptor has a `configuration` dictionary that allows to customize cell's appearance and behavior. In order to change concrete visual aspects of a row simply set `row.configuration.cell.appearance` value to a dictionary containing custom key-value coding properties.
 
 Here's an example:
 
 ```swift
-row.configuration[FormRowDescriptor.Configuration.CellConfiguration] = ["titleLabel.font" : UIFont.boldSystemFontOfSize(30.0), "segmentedControl.tintColor" : UIColor.redColor()]
+row.configuration.cell.appearance = ["titleLabel.font" : UIFont.boldSystemFontOfSize(30.0), "segmentedControl.tintColor" : UIColor.redColor()]
 ```
 
 Custom cells
@@ -88,18 +88,12 @@ Custom selector controllers
 
 In order to customize selector controller your class should conform to `FormSelector` protocol. That way you'll have access to the cell instance that pushed the controller, being able to alter its properties or setting it's row value accordingly to user interaction. 
 
-After defining your class, don't forget to set `FormRowType.Configuration.SelectorControllerClass` value in the configuration dictionary to use your custom selector controller.
+After defining your class, don't forget to set `row.configuration.selection.controllerClass` value in the configuration dictionary to use your custom selector controller.
 
 Requirements
 ---------------------
 
-* iOS 7.0 and above
-
-## Installation
-
-> **Embedded frameworks require a minimum deployment target of iOS 8.**
->
-> To use SwiftForms with a project targeting iOS 7, you must include all Swift files located inside the `SwiftForms` directory directly in your project.
+* iOS 8.0 and above
 
 ### CocoaPods
 

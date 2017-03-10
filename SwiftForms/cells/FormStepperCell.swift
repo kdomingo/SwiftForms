@@ -6,71 +6,64 @@
 //  Copyright (c) 2015 Miguel Angel Ortuno Ortuno. All rights reserved.
 //
 
-public class FormStepperCell: FormTitleCell {
+import UIKit
 
+open class FormStepperCell: FormTitleCell {
+    
     // MARK: Cell views
     
-    public let stepperView = UIStepper()
-    public let countLabel = UILabel()
+    open let stepperView = UIStepper()
+    open let countLabel = UILabel()
     
     // MARK: FormBaseCell
     
-    public override func configure() {
+    open override func configure() {
         super.configure()
         
-        selectionStyle = .None
+        selectionStyle = .none
         
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         stepperView.translatesAutoresizingMaskIntoConstraints = false
         countLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        titleLabel.font = UIFont.preferredFontForTextStyle(UIFontTextStyleBody)
-        countLabel.textAlignment = .Right
+        titleLabel.font = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
+        countLabel.textAlignment = .right
         
         contentView.addSubview(titleLabel)
         contentView.addSubview(countLabel)
         contentView.addSubview(stepperView)
         
-        titleLabel.setContentHuggingPriority(500, forAxis: .Horizontal)
+        titleLabel.setContentHuggingPriority(500, for: .horizontal)
         
-        contentView.addConstraint(NSLayoutConstraint(item: stepperView, attribute: .CenterY, relatedBy: .Equal, toItem: contentView, attribute: .CenterY, multiplier: 1.0, constant: 0.0))
+        contentView.addConstraint(NSLayoutConstraint(item: stepperView, attribute: .centerY, relatedBy: .equal, toItem: contentView, attribute: .centerY, multiplier: 1.0, constant: 0.0))
         
-        stepperView.addTarget(self, action: "valueChanged:", forControlEvents: .ValueChanged)
+        stepperView.addTarget(self, action: #selector(FormStepperCell.valueChanged(_:)), for: .valueChanged)
     }
     
-    public override func update() {
+    open override func update() {
         super.update()
         
-        if let maximumValue = rowDescriptor.configuration[FormRowDescriptor.Configuration.MaximumValue] as? Double {
-            stepperView.maximumValue = maximumValue
-        }
+        if let maximumValue = rowDescriptor?.configuration.stepper.maximumValue { stepperView.maximumValue = maximumValue }
+        if let minimumValue = rowDescriptor?.configuration.stepper.minimumValue { stepperView.minimumValue = minimumValue }
+        if let steps = rowDescriptor?.configuration.stepper.steps               { stepperView.stepValue = steps }
         
-        if let minimumValue = rowDescriptor.configuration[FormRowDescriptor.Configuration.MinimumValue] as? Double {
-            stepperView.minimumValue = minimumValue
-        }
+        titleLabel.text = rowDescriptor?.title
         
-        if let steps = rowDescriptor.configuration[FormRowDescriptor.Configuration.Steps] as? Double {
-            stepperView.stepValue = steps
-        }
-        
-        titleLabel.text = rowDescriptor.title
-        
-        if rowDescriptor.value != nil {
-            stepperView.value = rowDescriptor.value as! Double
-        }
-        else {
+        if let value = rowDescriptor?.value as? Double {
+            stepperView.value = value
+            countLabel.text = String(value)
+        } else {
             stepperView.value = stepperView.minimumValue
-            rowDescriptor.value = stepperView.minimumValue
+            rowDescriptor?.value = stepperView.minimumValue as AnyObject
+            countLabel.text = String(stepperView.minimumValue)
         }
-        
-        countLabel.text = rowDescriptor.value?.description
     }
     
-    public override func constraintsViews() -> [String : UIView] {
+    open override func constraintsViews() -> [String : UIView] {
         return ["titleLabel" : titleLabel, "countLabel" : countLabel, "stepperView" : stepperView]
     }
     
-    public override func defaultVisualConstraints() -> [String] {
+    open override func defaultVisualConstraints() -> [String] {
         var constraints: [String] = []
         
         constraints.append("V:|[titleLabel]|")
@@ -83,7 +76,7 @@ public class FormStepperCell: FormTitleCell {
     // MARK: Actions
     
     internal func valueChanged(_: UISwitch) {
-        rowDescriptor.value = stepperView.value
-        countLabel.text = rowDescriptor.value?.description
+        rowDescriptor?.value = stepperView.value as AnyObject
+        update()
     }
 }

@@ -3,23 +3,23 @@
 //  SwiftForms
 //
 //  Created by Miguel Angel Ortuno on 22/08/14.
-//  Copyright (c) 2014 Miguel Angel Ortuño. All rights reserved.
+//  Copyright (c) 2016 Miguel Angel Ortuño. All rights reserved.
 //
 
 import UIKit
 
-public class FormPickerCell: FormValueCell, UIPickerViewDelegate, UIPickerViewDataSource {
+open class FormPickerCell: FormValueCell, UIPickerViewDelegate, UIPickerViewDataSource {
     
     // MARK: Properties
     
-    private let picker = UIPickerView()
-    private let hiddenTextField = UITextField(frame: CGRectZero)
+    fileprivate let picker = UIPickerView()
+    fileprivate let hiddenTextField = UITextField(frame: CGRect.zero)
     
     // MARK: FormBaseCell
     
-    public override func configure() {
+    open override func configure() {
         super.configure()
-        accessoryType = .None
+        accessoryType = .none
         
         picker.delegate = self
         picker.dataSource = self
@@ -28,64 +28,77 @@ public class FormPickerCell: FormValueCell, UIPickerViewDelegate, UIPickerViewDa
         contentView.addSubview(hiddenTextField)
     }
     
-    public override func update() {
+    open override func update() {
         super.update()
+        picker.reloadAllComponents()
         
-        titleLabel.text = rowDescriptor.title
+        if let showsInputToolbar = rowDescriptor?.configuration.cell.showsInputToolbar , showsInputToolbar && hiddenTextField.inputAccessoryView == nil {
+            hiddenTextField.inputAccessoryView = inputAccesoryView()
+        }
         
-        if let value = rowDescriptor.value {
-            valueLabel.text = rowDescriptor.titleForOptionValue(value)
-            if let options = rowDescriptor.configuration[FormRowDescriptor.Configuration.Options] as? NSArray {
-                let index = options.indexOfObject(value)
-                if index != NSNotFound {
+        titleLabel.text = rowDescriptor?.title
+        
+        if let selectedValue = rowDescriptor?.value {
+            valueLabel.text = rowDescriptor?.configuration.selection.optionTitleClosure?(selectedValue)
+            if let options = rowDescriptor?.configuration.selection.options , !options.isEmpty {
+                var selectedIndex: Int?
+                for (index, value) in options.enumerated() {
+                    if value === selectedValue {
+                        selectedIndex = index
+                        break
+                    }
+                }
+                if let index = selectedIndex {
                     picker.selectRow(index, inComponent: 0, animated: false)
                 }
             }
         }
     }
     
-    public override class func formViewController(formViewController: FormViewController, didSelectRow selectedRow: FormBaseCell) {
+    open override func firstResponderElement() -> UIResponder? {
+        return hiddenTextField
+    }
+    
+    open override class func formViewController(_ formViewController: FormViewController, didSelectRow selectedRow: FormBaseCell) {
+        guard let row = selectedRow as? FormPickerCell else { return }
         
-        if selectedRow.rowDescriptor.value == nil {
-            if let row = selectedRow as? FormPickerCell {
-                let options = selectedRow.rowDescriptor.configuration[FormRowDescriptor.Configuration.Options] as? NSArray
-                let optionValue = options?[0] as? NSObject
-                selectedRow.rowDescriptor.value = optionValue
-                row.valueLabel.text = selectedRow.rowDescriptor.titleForOptionValue(optionValue!)
-                row.hiddenTextField.becomeFirstResponder()
-            }
+        if selectedRow.rowDescriptor?.value == nil {
+            guard let options = selectedRow.rowDescriptor?.configuration.selection.options , !options.isEmpty else { return }
+            let value = options[0]
+            selectedRow.rowDescriptor?.value = value
+            row.valueLabel.text = selectedRow.rowDescriptor?.configuration.selection.optionTitleClosure?(value)
+            row.hiddenTextField.becomeFirstResponder()
         } else {
-			if let row = selectedRow as? FormPickerCell {
-                guard let optionValue = selectedRow.rowDescriptor.value else { return }
-                row.valueLabel.text = selectedRow.rowDescriptor.titleForOptionValue(optionValue)
-                row.hiddenTextField.becomeFirstResponder()
-            }
-		}
+            guard let value = selectedRow.rowDescriptor?.value else { return }
+            row.valueLabel.text = selectedRow.rowDescriptor?.configuration.selection.optionTitleClosure?(value)
+            row.hiddenTextField.becomeFirstResponder()
+        }
     }
     
     // MARK: UIPickerViewDelegate
     
-    public func pickerView(pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return rowDescriptor.titleForOptionAtIndex(row)
+    open func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        guard let options = rowDescriptor?.configuration.selection.options , !options.isEmpty else { return nil }
+        guard row < options.count else { return nil }
+        return rowDescriptor?.configuration.selection.optionTitleClosure?(options[row])
     }
     
-    public func pickerView(pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        let options = rowDescriptor.configuration[FormRowDescriptor.Configuration.Options] as? NSArray
-        let optionValue = options?[row] as? NSObject
-        rowDescriptor.value = optionValue
-        valueLabel.text = rowDescriptor.titleForOptionValue(optionValue!)
+    open func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        guard let options = rowDescriptor?.configuration.selection.options , !options.isEmpty else { return }
+        guard row < options.count else { return }
+        let newValue = options[row]
+        rowDescriptor?.value = newValue
+        valueLabel.text = rowDescriptor?.configuration.selection.optionTitleClosure?(newValue)
     }
     
     // MARK: UIPickerViewDataSource
     
-    public func numberOfComponentsInPickerView(pickerView: UIPickerView) -> Int {
+    open func numberOfComponents(in pickerView: UIPickerView) -> Int {
         return 1
     }
     
-    public func pickerView(pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        if let options = rowDescriptor.configuration[FormRowDescriptor.Configuration.Options] as? NSArray {
-            return options.count
-        }
-        return 0
+    open func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        guard let options = rowDescriptor?.configuration.selection.options else { return 0 }
+        return options.count
     }
 }

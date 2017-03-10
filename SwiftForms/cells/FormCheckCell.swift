@@ -3,49 +3,53 @@
 //  SwiftForms
 //
 //  Created by Miguel Angel Ortuno on 22/08/14.
-//  Copyright (c) 2014 Miguel Angel Ortuño. All rights reserved.
+//  Copyright (c) 2016 Miguel Angel Ortuño. All rights reserved.
 //
 
 import UIKit
 
-public class FormCheckCell: FormTitleCell {
-
+open class FormCheckCell: FormTitleCell {
+    
     // MARK: FormBaseCell
     
-    public override func configure() {
+    open override func configure() {
         super.configure()
-        selectionStyle = .Default
-        accessoryType = .None
+        selectionStyle = .default
+        accessoryType = .none
     }
     
-    public override func update() {
+    open override func update() {
         super.update()
         
-        titleLabel.text = rowDescriptor.title
+        titleLabel.text = rowDescriptor?.title
         
-        if rowDescriptor.value == nil {
-            rowDescriptor.value = false
+        var rowValue: Bool
+        if let value = rowDescriptor?.value as? Bool {
+            rowValue = value
+        } else {
+            rowValue = false
+            rowDescriptor?.value = rowValue as AnyObject
         }
         
-        accessoryType = (rowDescriptor.value as! Bool) ? .Checkmark : .None
+        accessoryType = (rowValue) ? .checkmark : .none
     }
     
-    public override class func formViewController(formViewController: FormViewController, didSelectRow selectedRow: FormBaseCell) {
-        
-        if let row = selectedRow as? FormCheckCell {
-            row.check()
-        }
+    open override class func formViewController(_ formViewController: FormViewController, didSelectRow selectedRow: FormBaseCell) {
+        guard let row = selectedRow as? FormCheckCell else { return }
+        row.check()
     }
     
     // MARK: Private interface
     
-    private func check() {
-        if rowDescriptor.value != nil {
-            rowDescriptor.value = !(rowDescriptor.value as! Bool)
+    fileprivate func check() {
+        var newValue: Bool
+        if let value = rowDescriptor?.value as? Bool {
+            newValue = !value
         }
         else {
-            rowDescriptor.value = true
+            newValue = true
         }
-        accessoryType = (rowDescriptor.value as! Bool) ? .Checkmark : .None
+        rowDescriptor?.value = newValue as AnyObject
+        update()
     }
 }
