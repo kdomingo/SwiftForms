@@ -70,7 +70,7 @@ open class FormOptionsSelectorController: UITableViewController, FormSelector {
             }
             
         } else if let selectedOption = formCell?.rowDescriptor?.value {
-            if optionValue === selectedOption {
+            if optionValue.isEqual(selectedOption as Any) {
                 cell?.accessoryType = .checkmark
             } else {
                 cell?.accessoryType = .none
